@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Prep Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+  <div class="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md mx-4 sm:mx-auto border border-gray-200">
+    <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-10 tracking-tight drop-shadow-sm">AH WALA EY Calculator</h1>
+    <form id="mealPrepForm" class="space-y-7">
+      <div>
+        <label for="meatType" class="block text-lg font-semibold text-gray-700 mb-2">Meat Type</label>
+        <select id="meatType" name="meatType" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 text-base sm:text-lg bg-gray-50 transition">
+          <option value="">Choose</option>
+          <option value="Chicken">Chicken</option>
+          <option value="Beef">Beef</option>
+          <option value="Pork">Pork</option>
+        </select>
+      </div>
+      <!-- Amount field removed -->
+      <div>
+        <label for="grams" class="block text-lg font-semibold text-gray-700 mb-2">Grams</label>
+        <input type="number" id="grams" name="grams" min="0" step="any" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-400 text-base sm:text-lg bg-gray-50 transition" placeholder="Enter grams">
+      </div>
+      <div>
+        <label for="protein" class="block text-lg font-semibold text-gray-700 mb-2">Protein (per 100g)</label>
+        <input type="number" id="protein" name="protein" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-base sm:text-lg" placeholder="Auto-filled" readonly>
+      </div>
+      <!-- Calculate button removed for auto-update -->
+    </form>
+    <div id="result" class="mt-10 text-center text-2xl font-bold text-gray-700 tracking-wider bg-gray-100 rounded-xl py-4 shadow-sm"></div>
+    <div class="mt-6 text-center text-xs text-gray-400">Protein values: Chicken 31g, Beef 27g, Pork 27g per 100g</div>
+  </div>
+
+  <script>
+    const proteinData = {
+      'Chicken': 31,
+      'Beef': 27,
+      'Pork': 27
+    };
+
+    const meatTypeSelect = document.getElementById('meatType');
+    const proteinInput = document.getElementById('protein');
+
+    function updateProteinField() {
+      const selectedMeat = meatTypeSelect.value;
+      proteinInput.value = proteinData[selectedMeat] || 0;
+    }
+
+    meatTypeSelect.addEventListener('change', () => {
+      updateProteinField();
+      calculateMealPrep();
+    });
+    window.addEventListener('DOMContentLoaded', () => {
+      proteinInput.value = 0;
+      calculateMealPrep();
+    });
+
+    // Only grams input triggers calculation
+    document.getElementById('grams').addEventListener('input', calculateMealPrep);
+
+    function calculateMealPrep() {
+      const grams = parseFloat(document.getElementById('grams').value);
+      const selectedMeat = meatTypeSelect.value;
+      const protein = proteinData[selectedMeat];
+
+      if (!selectedMeat) {
+        document.getElementById('result').textContent = 'Please choose a meat type.';
+        proteinInput.value = 0;
+        return;
+      }
+      if (isNaN(grams)) {
+        document.getElementById('result').textContent = 'Please enter grams.';
+        return;
+      }
+
+      // STEP 1: Total Protein from RAW weight
+      // Formula: (Raw weight / 100) * protein per 100g
+      const totalProtein = (grams / 100) * protein;
+
+      // STEP 2: Estimate cooked weight loss (average 25% loss)
+      const cookedWeight = grams * 0.75;
+
+      // STEP 3: Protein per 100g cooked
+      const proteinPer100gCooked = cookedWeight > 0 ? (totalProtein / cookedWeight) * 100 : 0;
+
+      // Display only total protein as before, but logic now follows the core steps
+      let formattedProtein = totalProtein.toFixed(0);
+      if (formattedProtein.length < 2) {
+        formattedProtein = formattedProtein.padStart(2, '0');
+      }
+      document.getElementById('result').textContent = `Total Protein: ${formattedProtein}grams`;
+      // If you want to use cooked weight or protein density, you can access cookedWeight and proteinPer100gCooked variables
+    }
+  </script>
+</body>
+</html>
